@@ -3,7 +3,7 @@
 Plugin Name: Recapture
 Plugin URI: http://ben.subparcitizens.net/recapture
 Description: Recapture displays a reCAPTCHA on the user registration form in an attempt to combat user registration spam.
-Version: 0.1
+Version: 0.2
 Author: Ben Masters
 Author URI: http://ben.subparcitizens.net/
 */
