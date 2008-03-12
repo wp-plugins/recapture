@@ -21,7 +21,12 @@ $recaptureOptions = get_option( 'recapture_options' );
 // Display the reCAPTCHA on the registration form
 function display_recaptcha() {
 	global $recaptureOptions;
-	echo recaptcha_get_html( $recaptureOptions[ 'publicKey' ], $error );
+	$format = <<<END
+	<script type='text/javascript'>
+		var RecaptchaOptions = { theme: 'clean', tabindex : 30 };
+	</script>
+END;
+	echo $format . recaptcha_get_html( $recaptureOptions[ 'publicKey' ], $error );
 }
 
 // Hook the display_recaptcha function into WordPress
@@ -49,19 +54,18 @@ function check_recaptcha() {
 // Hook the check_recaptcha function into WordPress
 add_action( 'register_post', 'check_recaptcha' );
 
-function recapture_domain ()
-{
+function recapture_domain ( ) {
 	$uri = parse_url(get_settings('siteurl'));
 	return $uri['host'];
 }
 
 // Add a link to the configuration options in the WordPress options menu
-function add_recapture_config_page() {
+function add_recapture_config_page( ) {
 	add_options_page( 'Recapture Configuration', 'Recapture', 8, __FILE__, 'recapture_config_page' );
 }
 
 // Display the configuration options for Recapture
-function recapture_config_page() {
+function recapture_config_page( ) {
 	$recaptureOptionsArray = array(
 		'publicKey'			=> '',
 		'privateKey'		=> '',
@@ -96,7 +100,19 @@ function recapture_config_page() {
 	</tr>
 	</table>
 	<div class="narrow">
-	<p>There have been <code>(<?php echo $recaptureOptions[ 'failedAttempts' ]; ?>)</code> failed attempt(s) at the reCAPTCHA on your user registration page.</p>
+<?php
+	switch ( $recaptureOptions[ 'failedAttempts' ] ) {
+		case 0:
+			echo "<p>There have been <code>zero</code> failed attempts at the reCAPTCHA on your user registration page.</p>\n";
+			break;
+		case 1:
+			echo "<p>There has been <code>one</code> failed attempt at the reCAPTCHA on your user registration page.</p>\n";
+			break;
+		default:
+			echo "<p>There have been <code>(" . $recaptureOptions[ 'failedAttempts' ] . ")</code> failed attempts at the reCAPTCHA on your user registration page.</p>\n";
+			break;
+	}
+?>
 	</div>
 	<p class="submit">
 	<input type="submit" name="submit" value="<?php _e('Update Options &raquo;'); ?>" />
