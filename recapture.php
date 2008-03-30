@@ -3,7 +3,7 @@
 Plugin Name: Recapture
 Plugin URI: http://ben.subparcitizens.net/recapture
 Description: Recapture displays a reCAPTCHA on the user registration form in an attempt to combat user registration spam.
-Version: 0.1
+Version: 0.2beta
 Author: Ben Masters
 Author URI: http://ben.subparcitizens.net/
 */
@@ -33,8 +33,8 @@ END;
 add_action( 'register_form', 'display_recaptcha' );
 
 // Check the captcha
-function check_recaptcha() {
-	global $errors, $recaptureOptions;
+function check_recaptcha( $user_login, $user_email, $errors ) {
+	global $recaptureOptions;
 	$privateKey = $recaptureOptions[ 'privateKey' ];
 	
 	$response = recaptcha_check_answer( $privateKey,
@@ -46,13 +46,13 @@ function check_recaptcha() {
 		$recaptureOptions[ 'failedAttempts' ]++;
 		update_option( 'recapture_options', $recaptureOptions );
 		if ($response->error == 'incorrect-captcha-sol') {
-			$errors = 'That reCAPTCHA was incorrect.';
+			$errors->add( 'captcha_wrong', 'That reCAPTCHA was incorrect.' );
 		}
 	}
 }
 
 // Hook the check_recaptcha function into WordPress
-add_action( 'register_post', 'check_recaptcha' );
+add_action( 'register_post', 'check_recaptcha', 10, 3 );
 
 function recapture_domain ( ) {
 	$uri = parse_url(get_settings('siteurl'));
@@ -103,10 +103,10 @@ function recapture_config_page( ) {
 <?php
 	switch ( $recaptureOptions[ 'failedAttempts' ] ) {
 		case 0:
-			echo "<p>There have been <code>zero</code> failed attempts at the reCAPTCHA on your user registration page.</p>\n";
+			echo "<p>There have been <code>(zero)</code> failed attempts at the reCAPTCHA on your user registration page.</p>\n";
 			break;
 		case 1:
-			echo "<p>There has been <code>one</code> failed attempt at the reCAPTCHA on your user registration page.</p>\n";
+			echo "<p>There has been <code>(one)</code> failed attempt at the reCAPTCHA on your user registration page.</p>\n";
 			break;
 		default:
 			echo "<p>There have been <code>(" . $recaptureOptions[ 'failedAttempts' ] . ")</code> failed attempts at the reCAPTCHA on your user registration page.</p>\n";
