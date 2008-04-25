@@ -12,10 +12,11 @@ Author URI: http://ben.subparcitizens.net/
 // But not if you have the reCAPTCHA comment plugin installed.
 // That causes problems, because the library has already been included
 // So we'll just use that one if it exists.
-global $wp_version;
 if ( !function_exists( '_recaptcha_qsencode' )) {
 	require_once( dirname(__FILE__) . '/recaptchalib.php' );
 }
+
+global $wp_version;
 
 $recaptureOptions = get_option( 'recapture_options' );
 
@@ -66,7 +67,7 @@ function check_recaptcha_new( $user_login, $user_email, $errors ) {
 		$recaptureOptions[ 'failedAttempts' ]++;
 		update_option( 'recapture_options', $recaptureOptions );
 		if ( $response->error == 'incorrect-captcha-sol' ) {
-			$errors->add( 'captcha_wrong', 'That reCAPTCHA was incorrect.' );			
+			$errors->add( 'captcha_wrong', 'That reCAPTCHA was incorrect.' );
 		}
 	}
 }
