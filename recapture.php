@@ -12,6 +12,7 @@ Author URI: http://ben.subparcitizens.net/
 // But not if you have the reCAPTCHA comment plugin installed.
 // That causes problems, because the library has already been included
 // So we'll just use that one if it exists.
+global $wp_version;
 if ( !function_exists( '_recaptcha_qsencode' )) {
 	require_once( dirname(__FILE__) . '/recaptchalib.php' );
 }
@@ -33,7 +34,26 @@ END;
 add_action( 'register_form', 'display_recaptcha' );
 
 // Check the captcha
-function check_recaptcha( $user_login, $user_email, $errors ) {
+function check_recaptcha( ) {
+	global $recaptureOptions, $errors;
+	$privateKey = $recaptureOptions[ 'privateKey' ];
+	
+	$response = recaptcha_check_answer( $privateKey,
+										$_SERVER[ 'REMOTE_ADDR' ],
+										$_POST[ 'recaptcha_challenge_field' ],
+										$_POST[ 'recaptcha_response_field' ] );
+
+	if ( !$response->is_valid ) {
+		$recaptureOptions[ 'failedAttempts' ]++;
+		update_option( 'recapture_options', $recaptureOptions );
+		if ( $response->error == 'incorrect-captcha-sol' ) {
+			$errors[ 'captcha_wrong' ] = 'That reCAPTCHA was incorrect.';
+		}
+	}
+}
+
+// Check the captcha
+function check_recaptcha_new( $user_login, $user_email, $errors ) {
 	global $recaptureOptions;
 	$privateKey = $recaptureOptions[ 'privateKey' ];
 	
@@ -42,17 +62,21 @@ function check_recaptcha( $user_login, $user_email, $errors ) {
 										$_POST[ 'recaptcha_challenge_field' ],
 										$_POST[ 'recaptcha_response_field' ] );
 
-	if (!$response->is_valid) {
+	if ( !$response->is_valid ) {
 		$recaptureOptions[ 'failedAttempts' ]++;
 		update_option( 'recapture_options', $recaptureOptions );
-		if ($response->error == 'incorrect-captcha-sol') {
-			$errors->add( 'captcha_wrong', 'That reCAPTCHA was incorrect.' );
+		if ( $response->error == 'incorrect-captcha-sol' ) {
+			$errors->add( 'captcha_wrong', 'That reCAPTCHA was incorrect.' );			
 		}
 	}
 }
 
 // Hook the check_recaptcha function into WordPress
-add_action( 'register_post', 'check_recaptcha', 10, 3 );
+if ( $wp_version >= '2.5' ) {
+	add_action( 'register_post', 'check_recaptcha_new', 10, 3 );
+} else {
+	add_action( 'register_post', 'check_recaptcha' );
+}
 
 function recapture_domain ( ) {
 	$uri = parse_url(get_settings('siteurl'));
