@@ -113,8 +113,16 @@ function recapture_config_page( ) {
 	<h2>Recapture Configuration</h2>
 	<form method="post" action="<?php echo $_SERVER[ 'PHP_SELF' ] . '?page=' . plugin_basename(__FILE__); ?>&updated=true">
 	<?php wp_nonce_field( 'update-options' ); ?>
+	<?php echo "\n"; ?>
 	<p>Recapture requires a free set of api keys from <a href="<?php echo recaptcha_get_signup_url(recapture_domain(), 'wordpress'); ?>" target="_blank">http://recaptcha.net</a></p>
-	<table class="optiontable">
+<?php
+global $wp_version;
+if ( $wp_version < '2.5' ) {
+	echo "\t<table class=\"optiontable\">\n";
+} else {
+	echo "\t<table class=\"form-table\">\n";
+}
+?>
 	<tr valign="top">
 	<th scope="row">Public Key:</th>
 	<td><input type="text" name="publicKey" size="45" maxlength="40" value="<?php echo $recaptureOptions[ 'publicKey' ]; ?>" /></td>
@@ -124,26 +132,32 @@ function recapture_config_page( ) {
 	<td><input type="text" name="privateKey" size="45" maxlength="40" value="<?php echo $recaptureOptions[ 'privateKey' ]; ?>" /></td>
 	</tr>
 	</table>
-	<div class="narrow">
 <?php
+global $wp_version;
+if ( $wp_version < '2.5' ) {
+	echo "<div class=\"narrow\">\n";
+}
 	switch ( $recaptureOptions[ 'failedAttempts' ] ) {
 		case 0:
-			echo "<p>There have been <code>(zero)</code> failed attempts at the reCAPTCHA on your user registration page.</p>\n";
+			echo "\t<p>There have been <code>(zero)</code> failed attempts at the reCAPTCHA on your user registration page.</p>\n";
 			break;
 		case 1:
-			echo "<p>There has been <code>(one)</code> failed attempt at the reCAPTCHA on your user registration page.</p>\n";
+			echo "\t<p>There has been <code>(one)</code> failed attempt at the reCAPTCHA on your user registration page.</p>\n";
 			break;
 		default:
-			echo "<p>There have been <code>(" . $recaptureOptions[ 'failedAttempts' ] . ")</code> failed attempts at the reCAPTCHA on your user registration page.</p>\n";
+			echo "\t<p>There have been <code>(" . $recaptureOptions[ 'failedAttempts' ] . ")</code> failed attempts at the reCAPTCHA on your user registration page.</p>\n";
 			break;
 	}
+	
+if ( $wp_version < '2.5' ) {
+	echo "</div><!-- narrow -->\n";
+}
 ?>
-	</div>
 	<p class="submit">
 	<input type="submit" name="submit" value="<?php _e('Update Options &raquo;'); ?>" />
 	</p>
 	</form>
-	</div>
+</div><!-- wrap -->
 <?php
 }
 
