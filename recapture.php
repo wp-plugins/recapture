@@ -25,9 +25,17 @@ $recaptureOptions = get_option( 'recapture_options' );
 // Display the reCAPTCHA on the registration form
 function display_recaptcha() {
 	global $recaptureOptions;
+	global $wp_version;
+	
+	// Determine which theme to use based off of version of wordpress
+  if ( $wp_version >= '2.5' )
+    $theme = clean;
+  else
+    $theme = white;
+
 	$format = <<<END
 	<script type='text/javascript'>
-		var RecaptchaOptions = { theme: 'clean', tabindex : 30 };
+		var RecaptchaOptions = { theme: '$theme', tabindex : 30 };
 	</script>
 END;
 	echo $format . recaptcha_get_html( $recaptureOptions[ 'publicKey' ], $error );
@@ -178,8 +186,16 @@ if ( !($recaptureOptions['publicKey'] && $recaptureOptions['privateKey']) && !is
 
 // Adds the link to the stylesheet with the custom login page.
 function recapture_custom_header( ) {
-  $recapPluginURL = get_settings('siteurl') . "/wp-content/plugins/" . plugin_basename(dirname(__FILE__)) . "/recapture_styles.css";
-  echo '<link rel="stylesheet" href="' . $recapPluginURL . '" type="text/css" />';
+
+global $wp_version;
+
+// Only make the login page custom if using wordpress 2.5 or later.
+if ( $wp_version >= '2.5' ) {
+    $recapCSS = "/recapture_styles.css";
+    $recapPluginURL = get_settings('siteurl') . "/wp-content/plugins/" . plugin_basename(dirname(__FILE__)) . $recapCSS;
+    echo '<link rel="stylesheet" href="' . $recapPluginURL . '" type="text/css" />';
+}
+
 }
 
 // Hook the recapture_custom_header function into Wordpress login/register page
