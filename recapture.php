@@ -26,16 +26,13 @@ $recaptureOptions = get_option( 'recapture_options' );
 function display_recaptcha() {
 	global $recaptureOptions;
 	global $wp_version;
-	
-	// Determine which theme to use based off of version of wordpress
-  if ( $wp_version >= '2.5' )
-    $theme = clean;
-  else
-    $theme = white;
+	  
+  $lang = $recaptureOptions[ 'captchaLang' ];
+  $theme = $recaptureOptions['captchaTheme'];
 
 	$format = <<<END
 	<script type='text/javascript'>
-		var RecaptchaOptions = { theme: '$theme', tabindex : 30 };
+		var RecaptchaOptions = { theme: '$theme', lang: '$lang', tabindex : 30};
 	</script>
 END;
 	echo $format . recaptcha_get_html( $recaptureOptions[ 'publicKey' ], $error );
@@ -104,6 +101,8 @@ function recapture_config_page( ) {
 	$recaptureOptionsArray = array(
 		'publicKey'			=> '',
 		'privateKey'		=> '',
+		'captchaLang'   => '',
+		'captchaTheme'  => '',
 		'failedAttempts'	=> 0 );
 
 	add_option( 'recapture_options', $recaptureOptionsArray );
@@ -111,6 +110,8 @@ function recapture_config_page( ) {
 	if (isset($_POST[ 'submit' ])) {
 		$recaptureOptionsArray[ 'publicKey' ] = $_POST[ 'publicKey' ];
 		$recaptureOptionsArray[ 'privateKey' ] = $_POST[ 'privateKey' ];
+		$recaptureOptionsArray['captchaTheme'] = $_POST[ 'captchaTheme' ];
+		$recaptureOptionsArray[ 'captchaLang' ] = $_POST[ 'captchaLang' ];
 		$failedAttempts = get_option( 'recapture_options' );
 		$recaptureOptionsArray[ 'failedAttempts' ] = $failedAttempts[ 'failedAttempts' ]; 
 		
@@ -140,6 +141,33 @@ if ( $wp_version < '2.5' ) {
 	<tr valign="top">
 	<th scope="row">Private Key:</th>
 	<td><input type="text" name="privateKey" size="45" maxlength="40" value="<?php echo $recaptureOptions[ 'privateKey' ]; ?>" /></td>
+	</tr>
+	<tr valign="top">
+	<th scope="row">CAPTCHA Theme:</th>
+	<td>
+	  <select name="captchaTheme">
+	  	<option value="blackglass" <?php if($recaptureOptions['captchaTheme'] == 'blackglass') echo "selected=\"selected\""; ?>>Black Glass</option>
+	    <?php if($wp_version >= '2.5') { ?><option value="clean" <?php if($recaptureOptions['captchaTheme'] == 'clean' || $recaptureOptions['captchaTheme'] == '') echo "selected=\"selected\""; ?>>Clean</option><?php } ?>
+      <option value="red" <?php if($recaptureOptions['captchaTheme'] == 'red') echo "selected=\"selected\""; ?>>Red</option>
+      <option value="white" <?php if($recaptureOptions['captchaTheme'] == 'white') echo "selected=\"selected\""; ?>>White</option>
+    </select>
+  </td>
+	</tr>
+	<tr valign="top">
+	<th scope="row">CAPTCHA Language:</th>
+	<td>
+	  <select name="captchaLang">
+      <option value="en" <?php if($recaptureOptions['captchaLang'] == 'en') echo "selected=\"selected\""; ?>>English</option>
+      <option value="nl" <?php if($recaptureOptions['captchaLang'] == 'nl') echo "selected=\"selected\""; ?>>Dutch</option>
+      <option value="fr" <?php if($recaptureOptions['captchaLang'] == 'fr') echo "selected=\"selected\""; ?>>French</option>
+      <option value="de" <?php if($recaptureOptions['captchaLang'] == 'de') echo "selected=\"selected\""; ?>>German</option>
+      <option value="pt" <?php if($recaptureOptions['captchaLang'] == 'pt') echo "selected=\"selected\""; ?>>Portuguese</option>
+      <option value="ru" <?php if($recaptureOptions['captchaLang'] == 'ru') echo "selected=\"selected\""; ?>>Russian</option>
+      <option value="es" <?php if($recaptureOptions['captchaLang'] == 'es') echo "selected=\"selected\""; ?>>Spanish</option>
+      <option value="tr" <?php if($recaptureOptions['captchaLang'] == 'tr') echo "selected=\"selected\""; ?>>Turkish</option>
+    </select>
+    <?php if($wp_version >= '2.5') echo "The language selection does not make a difference with the \"clean\" theme."; ?>
+  </td>
 	</tr>
 	</table>
 <?php
@@ -187,13 +215,15 @@ if ( !($recaptureOptions['publicKey'] && $recaptureOptions['privateKey']) && !is
 // Adds the link to the stylesheet with the custom login page.
 function recapture_custom_header( ) {
 
+global $recaptureOptions;
 global $wp_version;
 
-// Only make the login page custom if using wordpress 2.5 or later.
-if ( $wp_version >= '2.5' ) {
-    $recapCSS = "/recapture_styles.css";
-    $recapPluginURL = get_settings('siteurl') . "/wp-content/plugins/" . plugin_basename(dirname(__FILE__)) . $recapCSS;
-    echo '<link rel="stylesheet" href="' . $recapPluginURL . '" type="text/css" />';
+// Only make the register page custom if it is the register page and is WP 2.5 or later.
+if ( $wp_version >= '2.5' && $_GET['action'] == 'register') {
+  if($recaptureOptions['captchaTheme'] == 'clean')
+    echo '<style type="text/css">#login { width: 480px; }</style>';
+  else if($recaptureOptions['captchaTheme'] == 'red' || $recaptureOptions['captchaTheme'] == 'white' || $recaptureOptions['captchaTheme'] == 'blackglass')
+    echo '<style type="text/css">#login { width: 359px; }</style>';
 }
 
 }
