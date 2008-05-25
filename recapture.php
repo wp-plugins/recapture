@@ -6,6 +6,8 @@ Description: Recapture displays a reCAPTCHA on the user registration form in an 
 Version: 0.2beta
 Author: Ben Masters
 Author URI: http://ben.subparcitizens.net/
+
+Contributer: Josh Moles
 */
 
 // We need to include the reCAPTCHA library...
@@ -173,4 +175,13 @@ if ( !($recaptureOptions['publicKey'] && $recaptureOptions['privateKey']) && !is
         add_action('admin_notices', 'recapture_warning');
         return;
 }
+
+// Adds the link to the stylesheet with the custom login page.
+function recapture_custom_header( ) {
+  $recapPluginURL = get_settings('siteurl') . "/wp-content/plugins/" . plugin_basename(dirname(__FILE__)) . "/recapture_styles.css";
+  echo '<link rel="stylesheet" href="' . $recapPluginURL . '" type="text/css" />';
+}
+
+// Hook the recapture_custom_header function into Wordpress login/register page
+add_action('login_head', 'recapture_custom_header');
 ?>

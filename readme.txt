@@ -1,5 +1,5 @@
 === Recapture ===
-Contributors: soothsayer
+Contributors: soothsayer, joshm
 Tags: spam, user registration spam, CAPTCHA, reCAPTCHA
 Requires at least: 2.1.3
 Tested up to: 2.3.1
